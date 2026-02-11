@@ -1,0 +1,34 @@
+{
+  "name": "solana-social-defi-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo for Solana Social DeFi platform - API and Mobile App",
+  "scripts": {
+    "dev": "pnpm --parallel --stream dev",
+    "dev:api": "pnpm --filter @solana-social/api dev",
+    "dev:mobile": "pnpm --filter @solana-social/mobile-app dev",
+    "build": "pnpm --recursive build",
+    "build:api": "pnpm --filter @solana-social/api build",
+    "build:mobile": "pnpm --filter @solana-social/mobile-app build",
+    "test": "pnpm --recursive test",
+    "test:api": "pnpm --filter @solana-social/api test",
+    "test:mobile": "pnpm --filter @solana-social/mobile-app test",
+    "lint": "pnpm --recursive lint",
+    "clean": "pnpm --recursive clean && rm -rf node_modules",
+    "install:all": "pnpm install"
+  },
+  "keywords": [
+    "solana",
+    "defi",
+    "social",
+    "mobile",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}

@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: solana-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: solana-social-defi
+
+  api:
+    build: .
+    container_name: solana-api
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/solana-social-defi
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  mongodb_data:

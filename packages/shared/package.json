@@ -1,0 +1,24 @@
+{
+  "name": "@solana-social/shared",
+  "version": "1.0.0",
+  "description": "Shared types, utilities, and constants for Solana Social DeFi",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "jest"
+  },
+  "keywords": [
+    "solana",
+    "shared",
+    "types"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "@types/node": "^20.12.7"
+  }
+}

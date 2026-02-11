@@ -1,0 +1,323 @@
+{
+  "info": {
+    "name": "Solana Social DeFi API",
+    "description": "Complete API collection for Solana Social DeFi backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign Up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Wallet Connect",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU\",\n  \"signature\": \"signature-here\",\n  \"message\": \"Sign in to Solana Social DeFi\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/wallet-connect",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "wallet-connect"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Biometric",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"biometricEnabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/biometric",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "biometric"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Social",
+      "item": [
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"My first post on Solana Social!\",\n  \"media\": [\"https://example.com/image.jpg\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/social/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "posts"]
+            }
+          }
+        },
+        {
+          "name": "Get Post",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/posts/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "posts", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Like Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/posts/:id/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "posts", ":id", "like"]
+            }
+          }
+        },
+        {
+          "name": "Comment on Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Great post!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/social/posts/:id/comment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "posts", ":id", "comment"]
+            }
+          }
+        },
+        {
+          "name": "Tokenize Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/posts/:id/tokenize",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "posts", ":id", "tokenize"]
+            }
+          }
+        },
+        {
+          "name": "Get Feed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/feed?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "feed"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rewards",
+      "item": [
+        {
+          "name": "Claim Rewards",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rewards/claim",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rewards", "claim"]
+            }
+          }
+        },
+        {
+          "name": "Get Rewards Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rewards/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rewards", "summary"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "NFTs",
+      "item": [
+        {
+          "name": "Mint NFT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cool NFT #1\",\n  \"symbol\": \"COOL\",\n  \"uri\": \"https://arweave.net/metadata.json\",\n  \"description\": \"A unique collectible\",\n  \"image\": \"https://arweave.net/image.png\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/nfts/mint",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "nfts", "mint"]
+            }
+          }
+        },
+        {
+          "name": "Get User NFTs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfts/user/collection",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "nfts", "user", "collection"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
