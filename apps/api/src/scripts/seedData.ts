@@ -245,7 +245,7 @@ async function seedPosts(users: any[]) {
   }
 }
 
-async function seedTrades(users: unknown[]) {
+async function seedTrades(users: any[]) {
   console.log("🌱 Seeding trades...");
 
   const trades = [
