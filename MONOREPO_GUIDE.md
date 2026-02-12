@@ -61,6 +61,12 @@ pnpm dev:api
 
 # Mobile app only
 pnpm dev:mobile
+
+# Run mobile on Android
+pnpm android
+
+# Run mobile on iOS
+pnpm ios
 ```
 
 ### Run shared package in watch mode
