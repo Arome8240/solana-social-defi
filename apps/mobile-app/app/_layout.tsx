@@ -44,7 +44,8 @@ function RootLayoutNav() {
 
     if (!isAuthenticated && !inAuthGroup) {
       // Redirect to welcome if not authenticated
-      router.replace("/(auth)/welcome");
+      router.replace("/(app)/home");
+      // router.replace("/(auth)/welcome");
     } else if (isAuthenticated && inAuthGroup) {
       // Redirect to app if authenticated
       router.replace("/(app)/home");

@@ -88,3 +88,92 @@ export const authAPI = {
     return response.data;
   },
 };
+
+// Wallet API endpoints
+export const walletAPI = {
+  getBalance: async () => {
+    const response = await api.get("/api/wallet/balance");
+    return response.data;
+  },
+
+  getTransactions: async (limit = 10) => {
+    const response = await api.get(`/api/wallet/transactions?limit=${limit}`);
+    return response.data;
+  },
+
+  sendTransaction: async (data: {
+    recipient: string;
+    amount: number;
+    token?: string;
+  }) => {
+    const response = await api.post("/api/wallet/send", data);
+    return response.data;
+  },
+
+  requestAirdrop: async () => {
+    const response = await api.post("/api/wallet/airdrop");
+    return response.data;
+  },
+};
+
+// Trading API endpoints
+export const tradingAPI = {
+  getTokenPrices: async () => {
+    const response = await api.get("/api/trading/prices");
+    return response.data;
+  },
+
+  swap: async (data: {
+    fromToken: string;
+    toToken: string;
+    amount: number;
+  }) => {
+    const response = await api.post("/api/trading/swap", data);
+    return response.data;
+  },
+
+  getSwapQuote: async (data: {
+    fromToken: string;
+    toToken: string;
+    amount: number;
+  }) => {
+    const response = await api.post("/api/trading/quote", data);
+    return response.data;
+  },
+};
+
+// Staking API endpoints
+export const stakingAPI = {
+  getStakingPools: async () => {
+    const response = await api.get("/api/staking/pools");
+    return response.data;
+  },
+
+  stake: async (data: { poolId: string; amount: number }) => {
+    const response = await api.post("/api/staking/stake", data);
+    return response.data;
+  },
+
+  unstake: async (data: { poolId: string; amount: number }) => {
+    const response = await api.post("/api/staking/unstake", data);
+    return response.data;
+  },
+
+  claimRewards: async (poolId: string) => {
+    const response = await api.post(`/api/staking/claim/${poolId}`);
+    return response.data;
+  },
+};
+
+// Rewards API endpoints
+export const rewardsAPI = {
+  getRewards: async () => {
+    const response = await api.get("/api/rewards");
+    return response.data;
+  },
+
+  claimDailyReward: async () => {
+    const response = await api.post("/api/rewards/daily");
+    return response.data;
+  },
+};

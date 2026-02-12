@@ -1,7 +1,8 @@
-import { View, ScrollView, RefreshControl } from "react-native";
+import { View, ScrollView, RefreshControl, Pressable } from "react-native";
 import { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,9 +12,18 @@ import Animated, {
 } from "react-native-reanimated";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/hooks/use-auth";
-import { authAPI } from "@/lib/api";
-import { Wallet, SecurityUser } from "iconsax-react-nativejs";
-import { Sparkles } from "lucide-react-native";
+import { walletAPI, tradingAPI, rewardsAPI } from "@/lib/api";
+import {
+  Wallet,
+  Send,
+  ReceiveSquare,
+  Convert,
+  TrendUp,
+  Award,
+  ArrowUp,
+  ArrowDown,
+} from "iconsax-react-nativejs";
+import { ChevronRight, Sparkles } from "lucide-react-native";
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -23,8 +33,8 @@ export default function HomeScreen() {
   const welcomeTranslateY = useSharedValue(-20);
   const walletOpacity = useSharedValue(0);
   const walletScale = useSharedValue(0.9);
-  const statsOpacity = useSharedValue(0);
-  const infoOpacity = useSharedValue(0);
+  const actionsOpacity = useSharedValue(0);
+  const contentOpacity = useSharedValue(0);
 
   useEffect(() => {
     welcomeOpacity.value = withTiming(1, { duration: 600 });
@@ -33,8 +43,9 @@ export default function HomeScreen() {
     walletOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
     walletScale.value = withDelay(200, withSpring(1));
 
-    statsOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
-    infoOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
+    actionsOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
+    contentOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const welcomeAnimatedStyle = useAnimatedStyle(() => ({
@@ -47,105 +58,191 @@ export default function HomeScreen() {
     transform: [{ scale: walletScale.value }],
   }));
 
-  const statsAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: statsOpacity.value,
+  const actionsAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: actionsOpacity.value,
   }));
 
-  const infoAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: infoOpacity.value,
+  const contentAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
   }));
 
-  const { data: walletData, refetch } = useQuery({
-    queryKey: ["wallet"],
-    queryFn: authAPI.getWallet,
+  const { data: walletData, refetch: refetchWallet } = useQuery({
+    queryKey: ["wallet-balance"],
+    queryFn: walletAPI.getBalance,
+    enabled: !!user,
+  });
+
+  const { data: transactions } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: () => walletAPI.getTransactions(5),
+    enabled: !!user,
+  });
+
+  const { data: tokenPrices } = useQuery({
+    queryKey: ["token-prices"],
+    queryFn: tradingAPI.getTokenPrices,
+    enabled: !!user,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const { data: rewards } = useQuery({
+    queryKey: ["rewards"],
+    queryFn: rewardsAPI.getRewards,
     enabled: !!user,
   });
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await refetch();
+    await refetchWallet();
     setRefreshing(false);
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView
         className="flex-1"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        showsVerticalScrollIndicator={false}
       >
         <View className="px-6 pt-6">
           {/* Welcome Header */}
-          <Animated.View style={welcomeAnimatedStyle} className="mb-8">
-            <Text className="text-3xl font-bold text-gray-900">
-              Welcome back,
-            </Text>
-            <Text className="text-3xl font-bold text-blue-600">
+          <Animated.View style={welcomeAnimatedStyle} className="mb-6">
+            <Text className="text-base text-gray-600">Welcome back,</Text>
+            <Text className="text-2xl font-bold text-gray-900">
               {user?.username}!
             </Text>
           </Animated.View>
 
           {/* Wallet Card */}
-          <Animated.View
-            style={walletAnimatedStyle}
-            className="mb-6 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 shadow-lg"
-          >
-            <View className="flex-row items-center gap-2">
-              <Wallet size={24} color="#ffffff" variant="Bold" />
-              <Text className="text-lg font-semibold text-white">
-                Your Wallet
-              </Text>
-            </View>
-            <View className="mt-4">
-              <Text className="text-sm text-blue-100">Balance</Text>
-              <Text className="mt-1 text-3xl font-bold text-white">
-                {walletData?.balance || "0.00"} SOL
-              </Text>
-            </View>
-            <View className="mt-4 rounded-lg bg-white/10 p-3">
-              <Text className="text-xs text-blue-100">Address</Text>
-              <Text className="mt-1 text-xs text-white" numberOfLines={1}>
-                {user?.walletAddress}
-              </Text>
+          <Animated.View style={walletAnimatedStyle} className="mb-6">
+            <View className="overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 shadow-lg">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-2">
+                  <Wallet size={24} color="#ffffff" variant="Bold" />
+                  <Text className="text-lg font-semibold text-white">
+                    Total Balance
+                  </Text>
+                </View>
+                <Pressable onPress={() => router.push("/(app)/home/wallet")}>
+                  <ChevronRight size={24} color="#ffffff" />
+                </Pressable>
+              </View>
+
+              <View className="mt-4">
+                <Text className="text-4xl font-bold text-white">
+                  ${walletData?.totalUSD?.toFixed(2) || "0.00"}
+                </Text>
+                <Text className="mt-1 text-sm text-blue-100">
+                  {walletData?.solBalance?.toFixed(4) || "0.0000"} SOL
+                </Text>
+              </View>
+
+              {walletData?.change24h !== undefined && (
+                <View className="mt-3 flex-row items-center gap-1">
+                  {walletData.change24h >= 0 ? (
+                    <ArrowUp size={16} color="#10b981" variant="Bold" />
+                  ) : (
+                    <ArrowDown size={16} color="#ef4444" variant="Bold" />
+                  )}
+                  <Text
+                    className={`text-sm font-medium ${
+                      walletData.change24h >= 0
+                        ? "text-green-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {walletData.change24h >= 0 ? "+" : ""}
+                    {walletData.change24h?.toFixed(2)}% (24h)
+                  </Text>
+                </View>
+              )}
             </View>
           </Animated.View>
 
-          {/* Quick Stats */}
-          <Animated.View style={statsAnimatedStyle} className="mb-6">
-            <Text className="mb-3 text-lg font-semibold text-gray-900">
-              Quick Stats
-            </Text>
+          {/* Quick Actions */}
+          <Animated.View style={actionsAnimatedStyle} className="mb-6">
             <View className="flex-row gap-3">
-              <StatCard
-                icon={<SecurityUser size={24} color="#3b82f6" variant="Bold" />}
-                label="Account Type"
-                value={user?.role || "User"}
+              <QuickAction
+                icon={<Send size={24} color="#3b82f6" variant="Bold" />}
+                label="Send"
+                onPress={() => router.push("/(app)/home/send")}
               />
-              <StatCard
-                icon={<Wallet size={24} color="#10b981" variant="Bold" />}
-                label="Wallet Status"
-                value="Active"
+              <QuickAction
+                icon={
+                  <ReceiveSquare size={24} color="#10b981" variant="Bold" />
+                }
+                label="Receive"
+                onPress={() => router.push("/(app)/home/receive")}
+              />
+              <QuickAction
+                icon={<Convert size={24} color="#8b5cf6" variant="Bold" />}
+                label="Swap"
+                onPress={() => router.push("/(app)/home/swap")}
+              />
+              <QuickAction
+                icon={<TrendUp size={24} color="#f59e0b" variant="Bold" />}
+                label="Stake"
+                onPress={() => router.push("/(app)/home/stake")}
               />
             </View>
           </Animated.View>
 
-          {/* Info Box */}
-          <Animated.View
-            style={infoAnimatedStyle}
-            className="rounded-lg bg-blue-50 p-4"
-          >
-            <View className="flex-row items-center gap-2">
-              <Sparkles size={20} color="#1e40af" strokeWidth={2} />
-              <Text className="text-sm font-semibold text-blue-900">
-                Welcome to Solana Social
-              </Text>
-            </View>
-            <Text className="mt-2 text-sm text-blue-700">
-              Your custodial wallet has been created and is ready to use. Start
-              exploring social features, earn rewards, and manage your crypto
-              assets.
-            </Text>
+          {/* Content Sections */}
+          <Animated.View style={contentAnimatedStyle} className="gap-6 pb-6">
+            {/* Rewards Section */}
+            {rewards && (
+              <RewardsCard
+                totalRewards={rewards.totalEarned}
+                availableToClaim={rewards.availableToClaim}
+                onClaim={() => router.push("/(app)/home/rewards")}
+              />
+            )}
+
+            {/* Token Prices */}
+            {tokenPrices && tokenPrices.length > 0 && (
+              <View>
+                <View className="mb-3 flex-row items-center justify-between">
+                  <Text className="text-lg font-semibold text-gray-900">
+                    Market Prices
+                  </Text>
+                  <Pressable onPress={() => router.push("/(app)/home/markets")}>
+                    <Text className="text-sm font-medium text-blue-600">
+                      View All
+                    </Text>
+                  </Pressable>
+                </View>
+                <View className="gap-2">
+                  {tokenPrices.slice(0, 3).map((token: any) => (
+                    <TokenPriceCard key={token.symbol} token={token} />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Recent Transactions */}
+            {transactions && transactions.length > 0 && (
+              <View>
+                <View className="mb-3 flex-row items-center justify-between">
+                  <Text className="text-lg font-semibold text-gray-900">
+                    Recent Activity
+                  </Text>
+                  <Pressable
+                    onPress={() => router.push("/(app)/home/transactions")}
+                  >
+                    <Text className="text-sm font-medium text-blue-600">
+                      View All
+                    </Text>
+                  </Pressable>
+                </View>
+                <View className="gap-2">
+                  {transactions.slice(0, 5).map((tx: any) => (
+                    <TransactionCard key={tx.id} transaction={tx} />
+                  ))}
+                </View>
+              </View>
+            )}
           </Animated.View>
         </View>
       </ScrollView>
@@ -153,22 +250,144 @@ export default function HomeScreen() {
   );
 }
 
-function StatCard({
+function QuickAction({
   icon,
   label,
-  value,
+  onPress,
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  onPress: () => void;
 }) {
   return (
-    <View className="flex-1 rounded-lg bg-gray-50 p-4">
-      <View className="mb-2">{icon}</View>
-      <Text className="text-xs text-gray-600">{label}</Text>
-      <Text className="mt-1 text-base font-semibold text-gray-900">
-        {value}
-      </Text>
-    </View>
+    <Pressable
+      onPress={onPress}
+      className="flex-1 items-center gap-2 rounded-xl bg-white p-4 active:bg-gray-50"
+    >
+      <View className="h-12 w-12 items-center justify-center rounded-full bg-gray-50">
+        {icon}
+      </View>
+      <Text className="text-xs font-medium text-gray-700">{label}</Text>
+    </Pressable>
+  );
+}
+
+function RewardsCard({
+  totalRewards,
+  availableToClaim,
+  onClaim,
+}: {
+  totalRewards: number;
+  availableToClaim: number;
+  onClaim: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onClaim}
+      className="overflow-hidden rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-5 active:opacity-90"
+    >
+      <View className="flex-row items-center justify-between">
+        <View className="flex-1">
+          <View className="mb-2 flex-row items-center gap-2">
+            <Award size={24} color="#ffffff" variant="Bold" />
+            <Text className="text-lg font-semibold text-white">
+              Your Rewards
+            </Text>
+          </View>
+          <Text className="text-3xl font-bold text-white">
+            {totalRewards.toFixed(2)} SKR
+          </Text>
+          {availableToClaim > 0 && (
+            <Text className="mt-1 text-sm text-amber-100">
+              {availableToClaim.toFixed(2)} SKR available to claim
+            </Text>
+          )}
+        </View>
+        <ChevronRight size={24} color="#ffffff" />
+      </View>
+    </Pressable>
+  );
+}
+
+function TokenPriceCard({ token }: { token: any }) {
+  const isPositive = token.change24h >= 0;
+
+  return (
+    <Pressable className="flex-row items-center justify-between rounded-xl bg-white p-4 active:bg-gray-50">
+      <View className="flex-row items-center gap-3">
+        <View className="h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+          <Text className="text-lg font-bold text-gray-700">
+            {token.symbol.charAt(0)}
+          </Text>
+        </View>
+        <View>
+          <Text className="font-semibold text-gray-900">{token.symbol}</Text>
+          <Text className="text-xs text-gray-500">{token.name}</Text>
+        </View>
+      </View>
+      <View className="items-end">
+        <Text className="font-semibold text-gray-900">
+          ${token.price.toFixed(2)}
+        </Text>
+        <View className="flex-row items-center gap-1">
+          {isPositive ? (
+            <ArrowUp size={12} color="#10b981" variant="Bold" />
+          ) : (
+            <ArrowDown size={12} color="#ef4444" variant="Bold" />
+          )}
+          <Text
+            className={`text-xs font-medium ${
+              isPositive ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {isPositive ? "+" : ""}
+            {token.change24h.toFixed(2)}%
+          </Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+function TransactionCard({ transaction }: { transaction: any }) {
+  const isSent = transaction.type === "send";
+
+  return (
+    <Pressable className="flex-row items-center justify-between rounded-xl bg-white p-4 active:bg-gray-50">
+      <View className="flex-row items-center gap-3">
+        <View
+          className={`h-10 w-10 items-center justify-center rounded-full ${
+            isSent ? "bg-red-50" : "bg-green-50"
+          }`}
+        >
+          {isSent ? (
+            <Send size={20} color="#ef4444" variant="Bold" />
+          ) : (
+            <ReceiveSquare size={20} color="#10b981" variant="Bold" />
+          )}
+        </View>
+        <View>
+          <Text className="font-semibold text-gray-900">
+            {isSent ? "Sent" : "Received"}
+          </Text>
+          <Text className="text-xs text-gray-500">
+            {new Date(transaction.timestamp).toLocaleDateString()}
+          </Text>
+        </View>
+      </View>
+      <View className="items-end">
+        <Text
+          className={`font-semibold ${
+            isSent ? "text-red-600" : "text-green-600"
+          }`}
+        >
+          {isSent ? "-" : "+"}
+          {transaction.amount.toFixed(4)} {transaction.token}
+        </Text>
+        <Text className="text-xs text-gray-500">
+          ${transaction.usdValue.toFixed(2)}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
