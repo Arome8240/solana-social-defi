@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -23,7 +24,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "iconsax-react-nativejs";
-import { ChevronRight, Sparkles } from "lucide-react-native";
+import { ChevronRight } from "lucide-react-native";
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -98,9 +99,9 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-white">
       <ScrollView
-        className="flex-1"
+        className="flex-1 bg-white"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -111,14 +112,22 @@ export default function HomeScreen() {
           <Animated.View style={welcomeAnimatedStyle} className="mb-6">
             <Text className="text-base text-gray-600">Welcome back,</Text>
             <Text className="text-2xl font-bold text-gray-900">
-              {user?.username}!
+              {user?.username || "Dev Arome"}!
             </Text>
           </Animated.View>
 
           {/* Wallet Card */}
-          <Animated.View style={walletAnimatedStyle} className="mb-6">
-            <View className="overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 shadow-lg">
-              <View className="flex-row items-center justify-between">
+          <Animated.View
+            style={walletAnimatedStyle}
+            className="mb-6 overflow-hidden rounded-2xl shadow-lg"
+          >
+            <LinearGradient
+              colors={["#2563eb", "#1d4ed8"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="p-6"
+            >
+              <View className="flex-row items-center justify-between p-6">
                 <View className="flex-row items-center gap-2">
                   <Wallet size={24} color="#ffffff" variant="Bold" />
                   <Text className="text-lg font-semibold text-white">
@@ -130,7 +139,7 @@ export default function HomeScreen() {
                 </Pressable>
               </View>
 
-              <View className="mt-4">
+              <View className="mt-4 p-6">
                 <Text className="text-4xl font-bold text-white">
                   ${walletData?.totalUSD?.toFixed(2) || "0.00"}
                 </Text>
@@ -158,12 +167,12 @@ export default function HomeScreen() {
                   </Text>
                 </View>
               )}
-            </View>
+            </LinearGradient>
           </Animated.View>
 
           {/* Quick Actions */}
           <Animated.View style={actionsAnimatedStyle} className="mb-6">
-            <View className="flex-row gap-3">
+            <View className="flex-row flex-wrap gap-x-2">
               <QuickAction
                 icon={<Send size={24} color="#3b82f6" variant="Bold" />}
                 label="Send"
@@ -262,9 +271,9 @@ function QuickAction({
   return (
     <Pressable
       onPress={onPress}
-      className="flex-1 items-center gap-2 rounded-xl bg-white p-4 active:bg-gray-50"
+      className="items-center gap-2 rounded-xl bg-gray-50 p-2 flex-1 active:bg-gray-100"
     >
-      <View className="h-12 w-12 items-center justify-center rounded-full bg-gray-50">
+      <View className="h-6 w-6 items-center justify-center rounded-full">
         {icon}
       </View>
       <Text className="text-xs font-medium text-gray-700">{label}</Text>
@@ -284,27 +293,34 @@ function RewardsCard({
   return (
     <Pressable
       onPress={onClaim}
-      className="overflow-hidden rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-5 active:opacity-90"
+      className="overflow-hidden rounded-xl active:opacity-90"
     >
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1">
-          <View className="mb-2 flex-row items-center gap-2">
-            <Award size={24} color="#ffffff" variant="Bold" />
-            <Text className="text-lg font-semibold text-white">
-              Your Rewards
+      <LinearGradient
+        colors={["#f59e0b", "#ea580c"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="p-5"
+      >
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1">
+            <View className="mb-2 flex-row items-center gap-2">
+              <Award size={24} color="#ffffff" variant="Bold" />
+              <Text className="text-lg font-semibold text-white">
+                Your Rewards
+              </Text>
+            </View>
+            <Text className="text-3xl font-bold text-white">
+              {totalRewards.toFixed(2)} SKR
             </Text>
+            {availableToClaim > 0 && (
+              <Text className="mt-1 text-sm text-amber-100">
+                {availableToClaim.toFixed(2)} SKR available to claim
+              </Text>
+            )}
           </View>
-          <Text className="text-3xl font-bold text-white">
-            {totalRewards.toFixed(2)} SKR
-          </Text>
-          {availableToClaim > 0 && (
-            <Text className="mt-1 text-sm text-amber-100">
-              {availableToClaim.toFixed(2)} SKR available to claim
-            </Text>
-          )}
+          <ChevronRight size={24} color="#ffffff" />
         </View>
-        <ChevronRight size={24} color="#ffffff" />
-      </View>
+      </LinearGradient>
     </Pressable>
   );
 }

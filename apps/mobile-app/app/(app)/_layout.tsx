@@ -1,13 +1,10 @@
 import AnimatedTabButton from "@/component/AnimatedTabButtons";
 import { Tabs } from "expo-router";
-import {
-  Home,
-  SearchNormal1, AddSquare, User
-} from "iconsax-react-nativejs";
+import { Home, SearchNormal1, AddSquare, User } from "iconsax-react-nativejs";
 import React from "react";
-import { Platform, Pressable } from "react-native";
+import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { DarkTheme } from "@react-navigation/native";
+import { DefaultTheme } from "@react-navigation/native";
 
 const Layout = () => {
   const insets = useSafeAreaInsets();
@@ -18,16 +15,14 @@ const Layout = () => {
       screenOptions={{
         animation: "shift",
         headerShown: false,
-        tabBarActiveTintColor: "#11cdb8",
+        tabBarActiveTintColor: "#1d4ed8",
         tabBarInactiveTintColor: "#7F7F7F",
         tabBarHideOnKeyboard: true,
         tabBarLabelStyle: {
           fontSize: 12,
           fontFamily: "Montserrat_500Medium",
         },
-        tabBarButton: (props) => (
-          <AnimatedTabButton {...props} />
-        ),
+        tabBarButton: (props) => <AnimatedTabButton {...props} />,
 
         tabBarStyle: {
           height: Platform.OS === "ios" ? 56 + insets.bottom : 76,
@@ -36,7 +31,7 @@ const Layout = () => {
           justifyContent: "center",
           elevation: 0,
           shadowOpacity: 0,
-          backgroundColor: DarkTheme.colors.card,
+          backgroundColor: DefaultTheme.colors.card,
         },
       }}
     >
@@ -44,9 +39,7 @@ const Layout = () => {
         name="home"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Home size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
 
@@ -74,9 +67,7 @@ const Layout = () => {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <User size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
     </Tabs>

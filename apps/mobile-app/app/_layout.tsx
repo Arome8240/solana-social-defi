@@ -3,7 +3,11 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { Fragment, useEffect } from "react";
 import { PortalHost } from "@rn-primitives/portal";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
 import {
   useFonts,
   Montserrat_400Regular,
@@ -27,9 +31,7 @@ const queryClient = new QueryClient({
 });
 
 function RootLayoutNav() {
-  const { isAuthenticated, isLoading, initialize } = useAuth();
-  const segments = useSegments();
-  const router = useRouter();
+  const { initialize } = useAuth();
 
   // Initialize auth on mount
   useEffect(() => {
@@ -37,7 +39,7 @@ function RootLayoutNav() {
   }, [initialize]);
 
   // Handle navigation based on auth state
-  useEffect(() => {
+  /* useEffect(() => {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
@@ -50,7 +52,7 @@ function RootLayoutNav() {
       // Redirect to app if authenticated
       router.replace("/(app)/home");
     }
-  }, [isAuthenticated, isLoading, segments, router]);
+  }, [isAuthenticated, isLoading, segments, router]); */
 
   return (
     <>
@@ -78,7 +80,7 @@ export default function RootLayout() {
     <Fragment>
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <ThemeProvider value={DarkTheme}>
+          <ThemeProvider value={DefaultTheme}>
             <RootLayoutNav />
           </ThemeProvider>
         </GestureHandlerRootView>
