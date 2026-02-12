@@ -7,6 +7,8 @@
     "dev": "pnpm --parallel --stream dev",
     "dev:api": "pnpm --filter @solana-social/api dev",
     "dev:mobile": "pnpm --filter @solana-social/mobile-app dev",
+    "android": "pnpm --filter @solana-social/mobile-app android",
+    "ios": "pnpm --filter @solana-social/mobile-app ios",
     "build": "pnpm --recursive build",
     "build:api": "pnpm --filter @solana-social/api build",
     "build:mobile": "pnpm --filter @solana-social/mobile-app build",

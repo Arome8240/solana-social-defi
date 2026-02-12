@@ -108,6 +108,12 @@ pnpm dev
 # Specific app
 pnpm dev:api
 pnpm dev:mobile
+
+# Run mobile app on Android
+pnpm android
+
+# Run mobile app on iOS
+pnpm ios
 ```
 
 ### Build
