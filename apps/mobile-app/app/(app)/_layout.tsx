@@ -7,6 +7,7 @@ import {
 import React from "react";
 import { Platform, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { DarkTheme } from "@react-navigation/native";
 
 const Layout = () => {
   const insets = useSafeAreaInsets();
@@ -35,7 +36,7 @@ const Layout = () => {
           justifyContent: "center",
           elevation: 0,
           shadowOpacity: 0,
-          backgroundColor: "#fff",
+          backgroundColor: DarkTheme.colors.card,
         },
       }}
     >

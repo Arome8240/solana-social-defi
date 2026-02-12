@@ -42,6 +42,14 @@ module.exports = {
           foreground: 'hsl(var(--card-foreground))',
         },
       },
+      fontFamily: {
+        sans: ["var(--font-sans)", "sans-serif"],
+        heading: ["var(--font-heading)", "sans-serif"],
+        montserrat: ["Montserrat_400Regular", "sans-serif"],
+        "montserrat-semibold": ["Montserrat_600SemiBold", "sans-serif"],
+        "montserrat-medium": ["Montserrat_500Medium", "sans-serif"],
+        "montserrat-bold": ["Montserrat_700Bold", "sans-serif"],
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
