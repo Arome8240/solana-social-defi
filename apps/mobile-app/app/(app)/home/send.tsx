@@ -1,4 +1,4 @@
-import { View, ScrollView, Pressable, Alert } from "react-native";
+import { View, ScrollView, Pressable, Alert, Modal } from "react-native";
 import { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -7,6 +7,7 @@ import { toast } from "sonner-native";
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { QRScanner } from "@/components/QRScanner";
 import { walletAPI } from "@/lib/api";
 import { Send, ArrowLeft, Scan } from "iconsax-react-nativejs";
 
@@ -14,6 +15,7 @@ export default function SendScreen() {
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const [selectedToken, setSelectedToken] = useState("SOL");
+  const [showScanner, setShowScanner] = useState(false);
 
   const { data: walletData } = useQuery({
     queryKey: ["wallet-balance"],
@@ -70,8 +72,25 @@ export default function SendScreen() {
     );
   };
 
+  const handleScan = (data: string) => {
+    setRecipient(data);
+    setShowScanner(false);
+    toast.success("Address Scanned", {
+      description: "Wallet address has been filled",
+    });
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
+      {/* QR Scanner Modal */}
+      <Modal
+        visible={showScanner}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <QRScanner onScan={handleScan} onClose={() => setShowScanner(false)} />
+      </Modal>
+
       <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
         <View className="px-6 pt-6">
           {/* Header */}
@@ -117,7 +136,10 @@ export default function SendScreen() {
                     editable={!sendMutation.isPending}
                   />
                 </View>
-                <Pressable className="h-12 w-12 items-center justify-center rounded-lg border-2 border-gray-200 bg-white active:bg-gray-50">
+                <Pressable
+                  onPress={() => setShowScanner(true)}
+                  className="h-12 w-12 items-center justify-center rounded-lg border-2 border-gray-200 bg-white active:bg-gray-50"
+                >
                   <Scan size={24} color="#374151" />
                 </Pressable>
               </View>

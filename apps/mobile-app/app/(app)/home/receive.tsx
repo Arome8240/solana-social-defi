@@ -5,6 +5,7 @@ import * as Clipboard from "expo-clipboard";
 import { toast } from "sonner-native";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
+import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { useAuth } from "@/hooks/use-auth";
 import { ArrowLeft, Copy, Share as ShareIcon } from "iconsax-react-nativejs";
 
@@ -50,12 +51,15 @@ export default function ReceiveScreen() {
           </View>
         </View>
 
-        {/* QR Code Placeholder */}
+        {/* QR Code */}
         <View className="mb-8 items-center">
-          <View className="h-64 w-64 items-center justify-center rounded-2xl bg-gray-100">
-            <Text className="text-center text-sm text-gray-500">
-              QR Code{"\n"}Coming Soon
-            </Text>
+          <View className="overflow-hidden rounded-2xl bg-white p-4 shadow-lg">
+            <QRCodeGenerator
+              value={user?.walletAddress || ""}
+              size={256}
+              backgroundColor="#ffffff"
+              color="#000000"
+            />
           </View>
         </View>
 

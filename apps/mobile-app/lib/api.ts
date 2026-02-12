@@ -177,3 +177,84 @@ export const rewardsAPI = {
     return response.data;
   },
 };
+
+// Search API endpoints
+export const searchAPI = {
+  searchAll: async (query: string) => {
+    const response = await api.get(
+      `/api/search?q=${encodeURIComponent(query)}`,
+    );
+    return response.data;
+  },
+
+  searchUsers: async (query: string) => {
+    const response = await api.get(
+      `/api/search/users?q=${encodeURIComponent(query)}`,
+    );
+    return response.data;
+  },
+
+  searchTokens: async (query: string) => {
+    const response = await api.get(
+      `/api/search/tokens?q=${encodeURIComponent(query)}`,
+    );
+    return response.data;
+  },
+
+  searchPosts: async (query: string) => {
+    const response = await api.get(
+      `/api/search/posts?q=${encodeURIComponent(query)}`,
+    );
+    return response.data;
+  },
+
+  getTrending: async () => {
+    const response = await api.get("/api/search/trending");
+    return response.data;
+  },
+};
+
+// Social API endpoints
+export const socialAPI = {
+  getPosts: async (limit = 20) => {
+    const response = await api.get(`/api/social/posts?limit=${limit}`);
+    return response.data;
+  },
+
+  getPost: async (postId: string) => {
+    const response = await api.get(`/api/social/posts/${postId}`);
+    return response.data;
+  },
+
+  createPost: async (data: { content: string; media?: string[] }) => {
+    const response = await api.post("/api/social/posts", data);
+    return response.data;
+  },
+
+  likePost: async (postId: string) => {
+    const response = await api.post(`/api/social/posts/${postId}/like`);
+    return response.data;
+  },
+
+  commentPost: async (postId: string, content: string) => {
+    const response = await api.post(`/api/social/posts/${postId}/comment`, {
+      content,
+    });
+    return response.data;
+  },
+
+  followUser: async (userId: string) => {
+    const response = await api.post(`/api/social/users/${userId}/follow`);
+    return response.data;
+  },
+
+  unfollowUser: async (userId: string) => {
+    const response = await api.delete(`/api/social/users/${userId}/follow`);
+    return response.data;
+  },
+
+  getUserProfile: async (userId: string) => {
+    const response = await api.get(`/api/social/users/${userId}`);
+    return response.data;
+  },
+};
