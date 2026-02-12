@@ -218,7 +218,7 @@ export default function SignupScreen() {
             <Button
               onPress={handleSignup}
               disabled={signupMutation.isPending}
-              className="mt-2 h-12 bg-blue-600 active:bg-blue-700"
+              className="mt-2 bg-blue-600 active:bg-blue-700"
             >
               <Text className="text-base font-semibold text-white">
                 {signupMutation.isPending

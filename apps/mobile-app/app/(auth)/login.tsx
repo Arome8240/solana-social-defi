@@ -151,7 +151,7 @@ export default function LoginScreen() {
             <Button
               onPress={handleLogin}
               disabled={loginMutation.isPending}
-              className="mt-2 h-12 bg-blue-600 active:bg-blue-700"
+              className="mt-2 bg-blue-600 active:bg-blue-700"
             >
               <Text className="text-base font-semibold text-white">
                 {loginMutation.isPending ? "Signing in..." : "Sign in"}

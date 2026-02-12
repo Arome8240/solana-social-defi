@@ -141,7 +141,7 @@ export default function WelcomeScreen() {
         <View className="gap-3">
           <Button
             onPress={handleNext}
-            className="h-12 bg-blue-600 active:bg-blue-700"
+            className="bg-blue-600 active:bg-blue-700"
           >
             <View className="flex-row items-center gap-2">
               <Text className="text-base font-semibold text-white">

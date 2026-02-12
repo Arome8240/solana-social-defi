@@ -139,7 +139,7 @@ export default function ProfileScreen() {
           <Button
             onPress={handleLogout}
             variant="outline"
-            className="h-12 border-red-200"
+            className="border-red-200"
           >
             <View className="flex-row items-center gap-2">
               <LogoutCurve size={20} color="#dc2626" variant="Bold" />
