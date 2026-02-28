@@ -176,8 +176,8 @@ export default function LoginScreen() {
                 className="active:opacity-70"
               >
                 <Text className="text-sm text-gray-600">
-                  Don't have an account?{" "}
- className="font-semibold text-purple-600">Sign Up</Text>
+                  Don&apos;t have an account?{" "}
+                  <Text className="font-semibold text-purple-600">Sign Up</Text>
                 </Text>
               </Pressable>
             </View>

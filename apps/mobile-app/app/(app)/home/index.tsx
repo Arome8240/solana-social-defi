@@ -13,45 +13,37 @@ import Animated, {
 } from "react-native-reanimated";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/hooks/use-auth";
-import { walletAPI, tradingAPI, rewardsAPI } from "@/lib/api";
+import { walletAPI } from "@/lib/api";
 import {
-  Wallet,
-  Send,
-  ReceiveSquare,
-  Convert,
-  TrendUp,
-  Award,
-  ArrowUp,
-  ArrowDown,
+  Eye,
+  EyeSlash,
+  Send2,
+  ReceiveSquare2,
+  ArrowSwapHorizontal,
 } from "iconsax-react-nativejs";
-import { ChevronRight } from "lucide-react-native";
+import { Sparkles } from "lucide-react-native";
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const [balanceVisible, setBalanceVisible] = useState(true);
 
-  const welcomeOpacity = useSharedValue(0);
-  const welcomeTranslateY = useSharedValue(-20);
+  const headerOpacity = useSharedValue(0);
   const walletOpacity = useSharedValue(0);
   const walletScale = useSharedValue(0.9);
   const actionsOpacity = useSharedValue(0);
-  const contentOpacity = useSharedValue(0);
+  const feedOpacity = useSharedValue(0);
 
   useEffect(() => {
-    welcomeOpacity.value = withTiming(1, { duration: 600 });
-    welcomeTranslateY.value = withSpring(0);
-
+    headerOpacity.value = withTiming(1, { duration: 600 });
     walletOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
     walletScale.value = withDelay(200, withSpring(1));
-
     actionsOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
-    contentOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    feedOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
+  }, [actionsOpacity, feedOpacity, headerOpacity, walletOpacity, walletScale]);
 
-  const welcomeAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: welcomeOpacity.value,
-    transform: [{ translateY: welcomeTranslateY.value }],
+  const headerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: headerOpacity.value,
   }));
 
   const walletAnimatedStyle = useAnimatedStyle(() => ({
@@ -63,32 +55,13 @@ export default function HomeScreen() {
     opacity: actionsOpacity.value,
   }));
 
-  const contentAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
+  const feedAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: feedOpacity.value,
   }));
 
   const { data: walletData, refetch: refetchWallet } = useQuery({
     queryKey: ["wallet-balance"],
     queryFn: walletAPI.getBalance,
-    enabled: !!user,
-  });
-
-  const { data: transactions } = useQuery({
-    queryKey: ["transactions"],
-    queryFn: () => walletAPI.getTransactions(5),
-    enabled: !!user,
-  });
-
-  const { data: tokenPrices } = useQuery({
-    queryKey: ["token-prices"],
-    queryFn: tradingAPI.getTokenPrices,
-    enabled: !!user,
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
-
-  const { data: rewards } = useQuery({
-    queryKey: ["rewards"],
-    queryFn: rewardsAPI.getRewards,
     enabled: !!user,
   });
 
@@ -98,160 +71,181 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
+  const balance = walletData?.totalUSD || 6291.0;
+  const solBalance = walletData?.solBalance || 24.56;
+  const skrBalance = walletData?.skrBalance || 503.33;
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <ScrollView
-        className="flex-1 bg-white"
+        className="flex-1"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-6 pt-6">
-          {/* Welcome Header */}
-          <Animated.View style={welcomeAnimatedStyle} className="mb-6">
-            <Text className="text-base text-gray-600">Welcome back,</Text>
-            <Text className="text-2xl font-bold text-gray-900">
-              {user?.username || "Dev Arome"}!
-            </Text>
-          </Animated.View>
+        {/* Header */}
+        <Animated.View
+          style={headerAnimatedStyle}
+          className="px-6 pt-4 pb-2 flex-row items-center justify-between"
+        >
+          <Text className="text-2xl font-bold text-gray-900">Home</Text>
+          <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:bg-gray-200">
+            <Text className="text-xl">🔔</Text>
+          </Pressable>
+        </Animated.View>
 
+        <View className="px-6">
           {/* Wallet Card */}
           <Animated.View
             style={walletAnimatedStyle}
-            className="mb-6 overflow-hidden rounded-2xl shadow-lg"
+            className="mb-6 overflow-hidden rounded-3xl"
           >
             <LinearGradient
-              colors={["#2563eb", "#1d4ed8"]}
+              colors={["#8b5cf6", "#7c3aed"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               className="p-6"
             >
-              <View className="flex-row items-center justify-between p-6">
-                <View className="flex-row items-center gap-2">
-                  <Wallet size={24} color="#ffffff" variant="Bold" />
-                  <Text className="text-lg font-semibold text-white">
-                    Total Balance
-                  </Text>
-                </View>
-                <Pressable onPress={() => router.push("/(app)/home/wallet")}>
-                  <ChevronRight size={24} color="#ffffff" />
+              {/* Balance Header */}
+              <View className="flex-row items-center justify-between mb-6">
+                <Text className="text-sm font-medium text-purple-100">
+                  Total Balance
+                </Text>
+                <Pressable
+                  onPress={() => setBalanceVisible(!balanceVisible)}
+                  className="active:opacity-70"
+                >
+                  {balanceVisible ? (
+                    <Eye size={20} color="#e9d5ff" variant="Bold" />
+                  ) : (
+                    <EyeSlash size={20} color="#e9d5ff" variant="Bold" />
+                  )}
                 </Pressable>
               </View>
 
-              <View className="mt-4 p-6">
-                <Text className="text-4xl font-bold text-white">
-                  ${walletData?.totalUSD?.toFixed(2) || "0.00"}
-                </Text>
-                <Text className="mt-1 text-sm text-blue-100">
-                  {walletData?.solBalance?.toFixed(4) || "0.0000"} SOL
-                </Text>
-              </View>
+              {/* Balance Amount */}
+              <Text className="text-4xl font-bold text-white mb-2">
+                {balanceVisible ? `$${balance.toFixed(2)}` : "••••••"}
+              </Text>
 
-              {walletData?.change24h !== undefined && (
-                <View className="mt-3 flex-row items-center gap-1">
-                  {walletData.change24h >= 0 ? (
-                    <ArrowUp size={16} color="#10b981" variant="Bold" />
-                  ) : (
-                    <ArrowDown size={16} color="#ef4444" variant="Bold" />
-                  )}
-                  <Text
-                    className={`text-sm font-medium ${
-                      walletData.change24h >= 0
-                        ? "text-green-400"
-                        : "text-red-400"
-                    }`}
-                  >
-                    {walletData.change24h >= 0 ? "+" : ""}
-                    {walletData.change24h?.toFixed(2)}% (24h)
+              {/* Token Balances */}
+              <View className="flex-row items-center gap-4">
+                <View className="flex-row items-center gap-1">
+                  <Text className="text-sm text-purple-100">SOL</Text>
+                  <Text className="text-sm font-semibold text-white">
+                    {balanceVisible ? solBalance.toFixed(2) : "••••"}
                   </Text>
                 </View>
-              )}
+                <View className="h-1 w-1 rounded-full bg-purple-200" />
+                <View className="flex-row items-center gap-1">
+                  <Text className="text-sm text-purple-100">SKR</Text>
+                  <Text className="text-sm font-semibold text-white">
+                    {balanceVisible ? skrBalance.toFixed(2) : "••••"}
+                  </Text>
+                </View>
+              </View>
             </LinearGradient>
           </Animated.View>
 
           {/* Quick Actions */}
           <Animated.View style={actionsAnimatedStyle} className="mb-6">
-            <View className="flex-row flex-wrap gap-x-2">
-              <QuickAction
-                icon={<Send size={24} color="#3b82f6" variant="Bold" />}
+            <View className="flex-row gap-3">
+              <QuickActionButton
+                icon={<Send2 size={24} color="#8b5cf6" variant="Bold" />}
                 label="Send"
                 onPress={() => router.push("/(app)/home/send")}
               />
-              <QuickAction
+              <QuickActionButton
                 icon={
-                  <ReceiveSquare size={24} color="#10b981" variant="Bold" />
+                  <ReceiveSquare2 size={24} color="#8b5cf6" variant="Bold" />
                 }
                 label="Receive"
                 onPress={() => router.push("/(app)/home/receive")}
               />
-              <QuickAction
-                icon={<Convert size={24} color="#8b5cf6" variant="Bold" />}
+              <QuickActionButton
+                icon={
+                  <ArrowSwapHorizontal
+                    size={24}
+                    color="#8b5cf6"
+                    variant="Bold"
+                  />
+                }
                 label="Swap"
                 onPress={() => router.push("/(app)/home/swap")}
-              />
-              <QuickAction
-                icon={<TrendUp size={24} color="#f59e0b" variant="Bold" />}
-                label="Stake"
-                onPress={() => router.push("/(app)/home/stake")}
               />
             </View>
           </Animated.View>
 
-          {/* Content Sections */}
-          <Animated.View style={contentAnimatedStyle} className="gap-6 pb-6">
-            {/* Rewards Section */}
-            {rewards && (
-              <RewardsCard
-                totalRewards={rewards.totalEarned}
-                availableToClaim={rewards.availableToClaim}
-                onClaim={() => router.push("/(app)/home/rewards")}
+          {/* ExploreMini Apps Banner */}
+          <Animated.View style={actionsAnimatedStyle} className="mb-6">
+            <Pressable
+              onPress={() => router.push("/(app)/mini-apps")}
+              className="overflow-hidden rounded-2xl active:opacity-90"
+            >
+              <LinearGradient
+                colors={["#8b5cf6", "#7c3aed"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="p-4 flex-row items-center justify-between"
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="h-12 w-12 items-center justify-center rounded-full bg-white/20">
+                    <Sparkles size={24} color="#ffffff" />
+                  </View>
+                  <View>
+                    <Text className="text-base font-bold text-white">
+                      Explore Mini Apps
+                    </Text>
+                    <Text className="text-sm text-purple-100">
+                      Discover apps and tools built on Solana
+                    </Text>
+                  </View>
+                </View>
+                <Text className="text-2xl">🎯</Text>
+              </LinearGradient>
+            </Pressable>
+          </Animated.View>
+
+          {/* Feed Section */}
+          <Animated.View style={feedAnimatedStyle} className="pb-6">
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="text-xl font-bold text-gray-900">Feed</Text>
+              <Pressable onPress={() => router.push("/(app)/social")}>
+                <Text className="text-sm font-semibold text-purple-600">
+                  Explore
+                </Text>
+              </Pressable>
+            </View>
+
+            {/* Feed Posts */}
+            <View className="gap-4">
+              <FeedPost
+                username="Solana-Princess"
+                handle="@solanaqueen"
+                time="2h"
+                content="Just deployed my FIRST EVER SOLANA PROGRAM! The speed is incredible ✨"
+                likes={24}
+                comments={7}
               />
-            )}
-
-            {/* Token Prices */}
-            {tokenPrices && tokenPrices.length > 0 && (
-              <View>
-                <View className="mb-3 flex-row items-center justify-between">
-                  <Text className="text-lg font-semibold text-gray-900">
-                    Market Prices
-                  </Text>
-                  <Pressable onPress={() => router.push("/(app)/home/markets")}>
-                    <Text className="text-sm font-medium text-blue-600">
-                      View All
-                    </Text>
-                  </Pressable>
-                </View>
-                <View className="gap-2">
-                  {tokenPrices.slice(0, 3).map((token: any) => (
-                    <TokenPriceCard key={token.symbol} token={token} />
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* Recent Transactions */}
-            {transactions && transactions.length > 0 && (
-              <View>
-                <View className="mb-3 flex-row items-center justify-between">
-                  <Text className="text-lg font-semibold text-gray-900">
-                    Recent Activity
-                  </Text>
-                  <Pressable
-                    onPress={() => router.push("/(app)/home/transactions")}
-                  >
-                    <Text className="text-sm font-medium text-blue-600">
-                      View All
-                    </Text>
-                  </Pressable>
-                </View>
-                <View className="gap-2">
-                  {transactions.slice(0, 5).map((tx: any) => (
-                    <TransactionCard key={tx.id} transaction={tx} />
-                  ))}
-                </View>
-              </View>
-            )}
+              <FeedPost
+                username="NFT Creator"
+                handle="@nftcreator"
+                time="5h"
+                content="New NFT COLLECTION dropping on Solana Mobile! Exclusive early access for followers 🎨"
+                image="https://via.placeholder.com/400x200"
+                likes={89}
+                comments={23}
+              />
+              <FeedPost
+                username="Solana-Princess"
+                handle="@solanaqueen"
+                time="8h"
+                content="Just deployed my FIRST EVER SOLANA PROGRAM! The speed is incredible ✨"
+                likes={45}
+                comments={12}
+              />
+            </View>
           </Animated.View>
         </View>
       </ScrollView>
@@ -259,7 +253,7 @@ export default function HomeScreen() {
   );
 }
 
-function QuickAction({
+function QuickActionButton({
   icon,
   label,
   onPress,
@@ -271,138 +265,71 @@ function QuickAction({
   return (
     <Pressable
       onPress={onPress}
-      className="items-center gap-2 rounded-xl bg-gray-50 p-2 flex-1 active:bg-gray-100"
+      className="flex-1 items-center gap-2 rounded-2xl bg-gray-50 py-4 active:bg-gray-100"
     >
-      <View className="h-6 w-6 items-center justify-center rounded-full">
-        {icon}
-      </View>
-      <Text className="text-xs font-medium text-gray-700">{label}</Text>
+      {icon}
+      <Text className="text-sm font-medium text-gray-700">{label}</Text>
     </Pressable>
   );
 }
 
-function RewardsCard({
-  totalRewards,
-  availableToClaim,
-  onClaim,
+function FeedPost({
+  username,
+  handle,
+  time,
+  content,
+  image,
+  likes,
+  comments,
 }: {
-  totalRewards: number;
-  availableToClaim: number;
-  onClaim: () => void;
+  username: string;
+  handle: string;
+  time: string;
+  content: string;
+  image?: string;
+  likes: number;
+  comments: number;
 }) {
   return (
-    <Pressable
-      onPress={onClaim}
-      className="overflow-hidden rounded-xl active:opacity-90"
-    >
-      <LinearGradient
-        colors={["#f59e0b", "#ea580c"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="p-5"
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1">
-            <View className="mb-2 flex-row items-center gap-2">
-              <Award size={24} color="#ffffff" variant="Bold" />
-              <Text className="text-lg font-semibold text-white">
-                Your Rewards
-              </Text>
-            </View>
-            <Text className="text-3xl font-bold text-white">
-              {totalRewards.toFixed(2)} SKR
-            </Text>
-            {availableToClaim > 0 && (
-              <Text className="mt-1 text-sm text-amber-100">
-                {availableToClaim.toFixed(2)} SKR available to claim
-              </Text>
-            )}
-          </View>
-          <ChevronRight size={24} color="#ffffff" />
-        </View>
-      </LinearGradient>
-    </Pressable>
-  );
-}
-
-function TokenPriceCard({ token }: { token: any }) {
-  const isPositive = token.change24h >= 0;
-
-  return (
-    <Pressable className="flex-row items-center justify-between rounded-xl bg-white p-4 active:bg-gray-50">
-      <View className="flex-row items-center gap-3">
-        <View className="h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-          <Text className="text-lg font-bold text-gray-700">
-            {token.symbol.charAt(0)}
+    <Pressable className="rounded-2xl bg-white p-4 active:bg-gray-50">
+      {/* Post Header */}
+      <View className="mb-3 flex-row items-center gap-3">
+        <View className="h-10 w-10 items-center justify-center rounded-full bg-purple-100">
+          <Text className="text-base font-bold text-purple-600">
+            {username.charAt(0)}
           </Text>
         </View>
-        <View>
-          <Text className="font-semibold text-gray-900">{token.symbol}</Text>
-          <Text className="text-xs text-gray-500">{token.name}</Text>
-        </View>
-      </View>
-      <View className="items-end">
-        <Text className="font-semibold text-gray-900">
-          ${token.price.toFixed(2)}
-        </Text>
-        <View className="flex-row items-center gap-1">
-          {isPositive ? (
-            <ArrowUp size={12} color="#10b981" variant="Bold" />
-          ) : (
-            <ArrowDown size={12} color="#ef4444" variant="Bold" />
-          )}
-          <Text
-            className={`text-xs font-medium ${
-              isPositive ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {isPositive ? "+" : ""}
-            {token.change24h.toFixed(2)}%
-          </Text>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function TransactionCard({ transaction }: { transaction: any }) {
-  const isSent = transaction.type === "send";
-
-  return (
-    <Pressable className="flex-row items-center justify-between rounded-xl bg-white p-4 active:bg-gray-50">
-      <View className="flex-row items-center gap-3">
-        <View
-          className={`h-10 w-10 items-center justify-center rounded-full ${
-            isSent ? "bg-red-50" : "bg-green-50"
-          }`}
-        >
-          {isSent ? (
-            <Send size={20} color="#ef4444" variant="Bold" />
-          ) : (
-            <ReceiveSquare size={20} color="#10b981" variant="Bold" />
-          )}
-        </View>
-        <View>
-          <Text className="font-semibold text-gray-900">
-            {isSent ? "Sent" : "Received"}
+        <View className="flex-1">
+          <Text className="text-sm font-semibold text-gray-900">
+            {username}
           </Text>
           <Text className="text-xs text-gray-500">
-            {new Date(transaction.timestamp).toLocaleDateString()}
+            {handle} · {time}
           </Text>
         </View>
       </View>
-      <View className="items-end">
-        <Text
-          className={`font-semibold ${
-            isSent ? "text-red-600" : "text-green-600"
-          }`}
-        >
-          {isSent ? "-" : "+"}
-          {transaction.amount.toFixed(4)} {transaction.token}
-        </Text>
-        <Text className="text-xs text-gray-500">
-          ${transaction.usdValue.toFixed(2)}
-        </Text>
+
+      {/* Post Content */}
+      <Text className="mb-3 text-sm leading-5 text-gray-700">{content}</Text>
+
+      {/* Post Image */}
+      {image && (
+        <View className="mb-3 h-48 overflow-hidden rounded-xl bg-gray-100" />
+      )}
+
+      {/* Post Actions */}
+      <View className="flex-row items-center gap-6">
+        <View className="flex-row items-center gap-1">
+          <Text className="text-xs text-gray-500">❤️</Text>
+          <Text className="text-xs font-medium text-gray-600">{likes}</Text>
+        </View>
+        <View className="flex-row items-center gap-1">
+          <Text className="text-xs text-gray-500">💬</Text>
+          <Text className="text-xs font-medium text-gray-600">{comments}</Text>
+        </View>
+        <View className="flex-row items-center gap-1">
+          <Text className="text-xs text-gray-500">🔁</Text>
+        </View>
       </View>
     </Pressable>
   );

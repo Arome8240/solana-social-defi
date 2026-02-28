@@ -233,7 +233,8 @@ export default function SignupStep3Screen() {
             <Pressable
               onPress={() => router.back()}
               className="items-center py-3 active:opacity-70"
-            <Text className="text-base font-medium text-gray-600">Back</Text>
+            >
+              <Text className="text-base font-medium text-gray-600">Back</Text>
             </Pressable>
           </View>
         </View>

@@ -21,14 +21,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react-native";
 
-const AVATARS = [
-  require("@/assets/images/avatars/1.png"),
-  require("@/assets/images/avatars/2.png"),
-  require("@/assets/images/avatars/3.png"),
-  require("@/assets/images/avatars/4.png"),
-  require("@/assets/images/avatars/5.png"),
-  require("@/assets/images/avatars/6.png"),
-];
+// const AVATARS = [
+//   require("@/assets/images/avatars/1.png"),
+//   require("@/assets/images/avatars/2.png"),
+//   require("@/assets/images/avatars/3.png"),
+//   require("@/assets/images/avatars/4.png"),
+//   require("@/assets/images/avatars/5.png"),
+//   require("@/assets/images/avatars/6.png"),
+// ];
 
 export default function SignupStep1Screen() {
   const [fullName, setFullName] = useState("");
@@ -178,7 +178,7 @@ export default function SignupStep1Screen() {
               <Text className="text-sm font-medium text-gray-700">
                 Profile Picture (Optional)
               </Text>
-              <ScrollView
+              {/*  <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 className="flex-row gap-3"
@@ -200,7 +200,7 @@ export default function SignupStep1Screen() {
                     />
                   </Pressable>
                 ))}
-              </ScrollView>
+              </ScrollView> */}
             </View>
           </Animated.View>
 

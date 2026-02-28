@@ -8,7 +8,7 @@ function Input({
   return (
     <TextInput
       className={cn(
-        "bg-white text-foreground flex h-12 w-full min-w-0 flex-row items-center rounded-lg border border-gray-200 px-4 py-3 text-base leading-5 sm:h-11",
+        "bg-white text-gray-900 flex h-12 w-full min-w-0 flex-row items-center rounded-lg border border-gray-200 px-4 py-3 text-base leading-5 sm:h-11",
         props.editable === false &&
           cn(
             "opacity-50",
@@ -18,14 +18,15 @@ function Input({
           ),
         Platform.select({
           web: cn(
-            "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground outline-none transition-all md:text-sm",
-            "focus-visible:border-blue-500 focus-visible:ring-blue-500/20 focus-visible:ring-[3px]",
+            "placeholder:text-gray-400 selection:bg-primary selection:text-primary-foreground outline-none transition-all md:text-sm",
+            "focus-visible:border-purple-500 focus-visible:ring-purple-500/20 focus-visible:ring-[3px]",
             "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
           ),
-          native: "placeholder:text-muted-foreground/50",
+          native: "placeholder:text-gray-400",
         }),
         className,
       )}
+      placeholderTextColor="#9ca3af"
       {...props}
     />
   );
