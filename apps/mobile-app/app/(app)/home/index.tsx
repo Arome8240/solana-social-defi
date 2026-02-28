@@ -20,6 +20,7 @@ import {
   Send2,
   ReceiveSquare2,
   ArrowSwapHorizontal,
+  Notification,
 } from "iconsax-react-nativejs";
 import { Sparkles } from "lucide-react-native";
 
@@ -91,7 +92,7 @@ export default function HomeScreen() {
         >
           <Text className="text-2xl font-bold text-gray-900">Home</Text>
           <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:bg-gray-200">
-            <Text className="text-xl">🔔</Text>
+            <Notification size={24} color="#374151" variant="Bold" />
           </Pressable>
         </Animated.View>
 
@@ -180,7 +181,7 @@ export default function HomeScreen() {
           {/* ExploreMini Apps Banner */}
           <Animated.View style={actionsAnimatedStyle} className="mb-6">
             <Pressable
-              onPress={() => router.push("/(app)/mini-apps")}
+              onPress={() => router.push("/home/mini-apps")}
               className="overflow-hidden rounded-2xl active:opacity-90"
             >
               <LinearGradient
@@ -202,7 +203,6 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                 </View>
-                <Text className="text-2xl">🎯</Text>
               </LinearGradient>
             </Pressable>
           </Animated.View>

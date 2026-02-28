@@ -14,7 +14,6 @@ import { ChevronLeft } from "lucide-react-native";
 import {
   Gameboy,
   Chart,
-  VideoPlay,
   MusicDashboard,
   Wallet3,
   ShoppingCart,
@@ -25,7 +24,7 @@ const MINI_APPS = [
     id: 1,
     name: "Token Swap",
     description: "Exchange tokens instantly",
-    icon: "🔄",
+    icon: Wallet3,
     color: "#8b5cf6",
     bgColor: "#f3e8ff",
   },
@@ -33,7 +32,7 @@ const MINI_APPS = [
     id: 2,
     name: "Token Swap",
     description: "Exchange tokens instantly",
-    icon: "🔄",
+    icon: Chart,
     color: "#8b5cf6",
     bgColor: "#f3e8ff",
   },
@@ -41,7 +40,7 @@ const MINI_APPS = [
     id: 3,
     name: "NFTs Gaming",
     description: "Play and earn rewards",
-    icon: "🎮",
+    icon: Gameboy,
     color: "#8b5cf6",
     bgColor: "#f3e8ff",
   },
@@ -49,7 +48,7 @@ const MINI_APPS = [
     id: 4,
     name: "DeFi Dashboard",
     description: "Track yields and pools",
-    icon: "📊",
+    icon: Chart,
     color: "#8b5cf6",
     bgColor: "#f3e8ff",
   },
@@ -57,7 +56,7 @@ const MINI_APPS = [
     id: 5,
     name: "Polls & Voting",
     description: "Create community polls",
-    icon: "📊",
+    icon: MusicDashboard,
     color: "#8b5cf6",
     bgColor: "#f3e8ff",
   },
@@ -65,7 +64,7 @@ const MINI_APPS = [
     id: 6,
     name: "Tipping Bot",
     description: "Send tips and tips",
-    icon: "💰",
+    icon: ShoppingCart,
     color: "#8b5cf6",
     bgColor: "#f3e8ff",
   },
@@ -133,6 +132,8 @@ function MiniAppCard({
   app: (typeof MINI_APPS)[0];
   index: number;
 }) {
+  const IconComponent = app.icon;
+
   return (
     <Pressable
       className="w-[48%] overflow-hidden rounded-3xl bg-purple-600 p-6 active:opacity-90"
@@ -141,7 +142,7 @@ function MiniAppCard({
       <View className="flex-1 justify-between">
         {/* Icon */}
         <View className="h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
-          <Text className="text-2xl">{app.icon}</Text>
+          <IconComponent size={28} color="#ffffff" variant="Bold" />
         </View>
 
         {/* Content */}
