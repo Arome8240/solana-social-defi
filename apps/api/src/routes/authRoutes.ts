@@ -1,16 +1,15 @@
 import { Router } from "express";
 import * as authController from "../controllers/authController";
 import { authenticate } from "../middleware/auth";
-import { validate, schemas } from "../middleware/validation";
 import { strictRateLimitMiddleware } from "../middleware/rateLimiter";
 
 const router: Router = Router();
 
 /**
  * @swagger
- * /api/auth/signup:
+ * /api/auth/check-username:
  *   post:
- *     summary: Create a new user account with auto-generated wallet
+ *     summary: Check if username is available
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -20,23 +19,97 @@ const router: Router = Router();
  *             type: object
  *             required:
  *               - username
- *               - email
- *               - password
  *             properties:
  *               username:
  *                 type: string
+ *                 description: Desired username
+ *     responses:
+ *       200:
+ *         description: Username availability status
+ *       400:
+ *         description: Username already taken
+ */
+router.post(
+  "/check-username",
+  strictRateLimitMiddleware,
+  authController.checkUsername,
+);
+
+/**
+ * @swagger
+ * /api/auth/signup/send-otp:
+ *   post:
+ *     summary: Step 2 - Send OTP to email for signup
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fullName
+ *               - username
+ *               - email
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *                 description: User's full name
+ *               username:
+ *                 type: string
  *                 description: Unique username
+ *               bio:
+ *                 type: string
+ *                 description: Optional bio
  *               email:
  *                 type: string
  *                 format: email
  *                 description: User email
- *               password:
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       400:
+ *         description: User already exists or validation error
+ */
+router.post(
+  "/signup/send-otp",
+  strictRateLimitMiddleware,
+  authController.signupSendOTP,
+);
+
+/**
+ * @swagger
+ * /api/auth/signup/verify-otp:
+ *   post:
+ *     summary: Step 3 - Verify OTP and complete signup
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fullName
+ *               - username
+ *               - email
+ *               - code
+ *             properties:
+ *               fullName:
  *                 type: string
- *                 format: password
- *                 description: User password (min 6 characters)
+ *               username:
+ *                 type: string
+ *               bio:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               code:
+ *                 type: string
+ *                 description: 6-digit OTP code
  *     responses:
  *       201:
- *         description: User created successfully
+ *         description: Account created successfully with JWT token
  *         content:
  *           application/json:
  *             schema:
@@ -44,35 +117,22 @@ const router: Router = Router();
  *               properties:
  *                 token:
  *                   type: string
- *                   description: JWT authentication token
  *                 user:
  *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                     username:
- *                       type: string
- *                     email:
- *                       type: string
- *                     walletAddress:
- *                       type: string
- *                     balances:
- *                       type: object
  *       400:
- *         description: Validation error or user already exists
+ *         description: Invalid or expired OTP
  */
 router.post(
-  "/signup",
+  "/signup/verify-otp",
   strictRateLimitMiddleware,
-  validate(schemas.signup),
-  authController.signup,
+  authController.signupVerifyOTP,
 );
 
 /**
  * @swagger
- * /api/auth/login:
+ * /api/auth/login/send-otp:
  *   post:
- *     summary: Login with email and password
+ *     summary: Send OTP to email for login
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -82,37 +142,55 @@ router.post(
  *             type: object
  *             required:
  *               - email
- *               - password
  *             properties:
  *               email:
  *                 type: string
  *                 format: email
  *                 description: User email
- *               password:
- *                 type: string
- *                 format: password
- *                 description: User password
  *     responses:
  *       200:
- *         description: Login successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 token:
- *                   type: string
- *                   description: JWT authentication token
- *                 user:
- *                   type: object
- *       401:
- *         description: Invalid credentials
+ *         description: OTP sent successfully
+ *       404:
+ *         description: User not found
  */
 router.post(
-  "/login",
+  "/login/send-otp",
   strictRateLimitMiddleware,
-  validate(schemas.login),
-  authController.login,
+  authController.loginSendOTP,
+);
+
+/**
+ * @swagger
+ * /api/auth/login/verify-otp:
+ *   post:
+ *     summary: Verify OTP and login
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - code
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               code:
+ *                 type: string
+ *                 description: 6-digit OTP code
+ *     responses:
+ *       200:
+ *         description: Login successful with JWT token
+ *       400:
+ *         description: Invalid or expired OTP
+ */
+router.post(
+  "/login/verify-otp",
+  strictRateLimitMiddleware,
+  authController.loginVerifyOTP,
 );
 
 /**
@@ -147,7 +225,7 @@ router.patch("/biometric", authenticate, authController.toggleBiometric);
  * @swagger
  * /api/auth/export-private-key:
  *   post:
- *     summary: Export wallet private key (requires password)
+ *     summary: Export wallet private key (requires OTP verification)
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -158,12 +236,15 @@ router.patch("/biometric", authenticate, authController.toggleBiometric);
  *           schema:
  *             type: object
  *             required:
- *               - password
+ *               - email
+ *               - code
  *             properties:
- *               password:
+ *               email:
  *                 type: string
- *                 format: password
- *                 description: User password for verification
+ *                 format: email
+ *               code:
+ *                 type: string
+ *                 description: OTP code for verification
  *     responses:
  *       200:
  *         description: Private key exported
@@ -176,7 +257,7 @@ router.patch("/biometric", authenticate, authController.toggleBiometric);
  *                   type: string
  *                   description: Base58 encoded private key
  *       401:
- *         description: Unauthorized or invalid password
+ *         description: Unauthorized or invalid OTP
  */
 router.post(
   "/export-private-key",

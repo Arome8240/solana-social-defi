@@ -5,7 +5,9 @@ export interface IUser extends Document {
   encryptedPrivateKey: string;
   username: string;
   email: string;
-  passwordHash: string;
+  fullName?: string;
+  bio?: string;
+  emailVerified: boolean;
   biometricEnabled: boolean;
   role: "user" | "creator" | "admin";
   balances: {
@@ -44,9 +46,18 @@ const UserSchema: Schema = new Schema(
       lowercase: true,
       trim: true,
     },
-    passwordHash: {
+    fullName: {
       type: String,
-      required: true,
+      trim: true,
+    },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false,
     },
     biometricEnabled: {
       type: Boolean,

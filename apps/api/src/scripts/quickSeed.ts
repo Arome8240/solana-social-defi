@@ -4,7 +4,6 @@
  */
 
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
 import { Keypair } from "@solana/web3.js";
 import bs58 from "bs58";
 import crypto from "crypto";
@@ -41,9 +40,9 @@ async function createTestAccount() {
       console.log("\n📝 Login Credentials:");
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log("Email: test@example.com");
-      console.log("Password: password123");
       console.log("Username: testuser");
       console.log("Wallet:", existing.walletAddress);
+      console.log("Note: Use 'Send OTP' to login (passwordless)");
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
       await mongoose.disconnect();
       process.exit(0);
@@ -55,16 +54,15 @@ async function createTestAccount() {
     const privateKey = bs58.encode(keypair.secretKey);
     const encryptedPrivateKey = encryptPrivateKey(privateKey);
 
-    // Hash password
-    const passwordHash = await bcrypt.hash("password123", 10);
-
     // Create user
     const user = new User({
       username: "testuser",
+      fullName: "Test User",
       email: "test@example.com",
-      passwordHash,
+      bio: "Test account for development",
       walletAddress,
       encryptedPrivateKey,
+      emailVerified: true,
       role: "user",
       balances: {
         skr: 100,
@@ -79,11 +77,12 @@ async function createTestAccount() {
     console.log("\n📝 Login Credentials:");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("Email: test@example.com");
-    console.log("Password: password123");
     console.log("Username: testuser");
+    console.log("Full Name: Test User");
     console.log("Wallet:", walletAddress);
     console.log("SKR Balance: 100");
     console.log("SOL Balance: 1");
+    console.log("Note: Use 'Send OTP' to login (passwordless)");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     await mongoose.disconnect();

@@ -6,7 +6,7 @@ import {
   ScrollView,
   Pressable,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner-native";
 import Animated, {
@@ -22,7 +22,14 @@ import { Button } from "@/components/ui/button";
 import { authAPI } from "@/lib/api";
 import { ChevronLeft } from "lucide-react-native";
 
-export default function LoginScreen() {
+export default function SignupStep2Screen() {
+  const params = useLocalSearchParams<{
+    fullName: string;
+    username: string;
+    bio: string;
+    avatar: string;
+  }>();
+
   const [email, setEmail] = useState("");
 
   const headerOpacity = useSharedValue(0);
@@ -49,14 +56,17 @@ export default function LoginScreen() {
   }));
 
   const sendOTPMutation = useMutation({
-    mutationFn: authAPI.loginSendOTP,
+    mutationFn: authAPI.signupSendOTP,
     onSuccess: () => {
       toast.success("OTP Sent!", {
         description: "Check your email for the verification code",
       });
       router.push({
-        pathname: "/(auth)/login-otp",
-        params: { email },
+        pathname: "/(auth)/signup-step3",
+        params: {
+          ...params,
+          email,
+        },
       });
     },
     onError: (error: any) => {
@@ -83,7 +93,12 @@ export default function LoginScreen() {
       return;
     }
 
-    sendOTPMutation.mutate(email);
+    sendOTPMutation.mutate({
+      fullName: params.fullName,
+      username: params.username,
+      bio: params.bio,
+      email,
+    });
   };
 
   return (
@@ -108,21 +123,19 @@ export default function LoginScreen() {
           {/* Header */}
           <Animated.View style={headerAnimatedStyle} className="mb-8">
             <Text className="text-3xl font-bold text-gray-900">
-              Welcome Back!
+              Enter Your Email
             </Text>
             <Text className="mt-2 text-base text-gray-500">
-              Sign in with your account
+              This email will be used to recover your account should you lose
+              access.
             </Text>
           </Animated.View>
 
           {/* Form */}
-          <Animated.View style={formAnimatedStyle} className="flex-1 gap-5">
+          <Animated.View style={formAnimatedStyle} className="flex-1">
             <View className="gap-2">
-              <Text className="text-sm font-medium text-gray-700">
-                User email
-              </Text>
               <Input
-                placeholder="Jimmy Donaldson"
+                placeholder="example@email.com"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -142,45 +155,16 @@ export default function LoginScreen() {
               className="h-14 rounded-2xl bg-purple-600 active:bg-purple-700"
             >
               <Text className="text-base font-semibold text-white">
-                {sendOTPMutation.isPending ? "Sending..." : "Sign In"}
+                {sendOTPMutation.isPending ? "Sending..." : "Create Account"}
               </Text>
             </Button>
 
-            {/* Social Sign In */}
-            <View className="gap-3">
-              <View className="flex-row items-center gap-2">
-                <View className="h-px flex-1 bg-gray-200" />
-                <Text className="text-sm text-gray-500">Or Sign in with</Text>
-                <View className="h-px flex-1 bg-gray-200" />
-              </View>
-
-              <View className="flex-row gap-3">
-                <Pressable className="h-12 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white active:bg-gray-50">
-                  <Text className="text-base font-medium text-gray-700">
-                    🔍 Google
-                  </Text>
-                </Pressable>
-
-                <Pressable className="h-12 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white active:bg-gray-50">
-                  <Text className="text-base font-medium text-gray-700">
-                    🍎 Apple
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-
-            {/* Sign Up Link */}
-            <View className="items-center pt-4">
-              <Pressable
-                onPress={() => router.push("/(auth)/signup-step1")}
-                className="active:opacity-70"
-              >
-                <Text className="text-sm text-gray-600">
-                  Don't have an account?{" "}
- className="font-semibold text-purple-600">Sign Up</Text>
-                </Text>
-              </Pressable>
-            </View>
+            <Pressable
+              onPress={() => router.back()}
+              className="items-center py-3 active:opacity-70"
+            >
+              <Text className="text-base font-medium text-gray-600">Back</Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>

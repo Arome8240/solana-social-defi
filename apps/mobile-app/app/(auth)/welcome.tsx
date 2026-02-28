@@ -1,4 +1,4 @@
-import { View, Pressable } from "react-native";
+import { View, Pressable, Dimensions } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import { router } from "expo-router";
 import PagerView from "react-native-pager-view";
@@ -7,54 +7,35 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withDelay,
-  withSequence,
   withTiming,
 } from "react-native-reanimated";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
-import { Wallet, MessageText, Award, Convert } from "iconsax-react-nativejs";
-import { Rocket, ChevronRight } from "lucide-react-native";
+import { Zap, Shield, Sparkles } from "lucide-react-native";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const ONBOARDING_PAGES = [
   {
     id: 1,
-    icon: <Rocket size={64} color="#3b82f6" strokeWidth={2} />,
-    title: "Welcome to Solana Social",
-    description:
-      "Your all-in-one social DeFi platform for the Solana ecosystem",
-    color: "#3b82f6",
+    icon: Zap,
+    title: "Lightning Fast\nPayments",
+    description: "Send and receive money in seconds\nwith Solana's speed",
+    color: "#8b5cf6",
   },
   {
     id: 2,
-    icon: <Wallet size={64} color="#8b5cf6" variant="Bold" />,
-    title: "Custodial Wallet",
-    description:
-      "Get an auto-generated Solana wallet secured by our platform. No seed phrases to remember.",
+    icon: Shield,
+    title: "Your Wallet,\nYour Keys",
+    description: "Secure, self-custodial wallet created\njust for you",
     color: "#8b5cf6",
   },
   {
     id: 3,
-    icon: <MessageText size={64} color="#ec4899" variant="Bold" />,
-    title: "Social Features",
-    description:
-      "Connect with others, share posts, like content, and engage with the community.",
-    color: "#ec4899",
-  },
-  {
-    id: 4,
-    icon: <Award size={64} color="#f59e0b" variant="Bold" />,
-    title: "Earn Rewards",
-    description:
-      "Get SKR tokens for your engagement. Create content, interact, and earn crypto.",
-    color: "#f59e0b",
-  },
-  {
-    id: 5,
-    icon: <Convert size={64} color="#10b981" variant="Bold" />,
-    title: "DeFi & Trading",
-    description:
-      "Stake your tokens, lend assets, swap cryptocurrencies, and explore DeFi opportunities.",
-    color: "#10b981",
+    icon: Sparkles,
+    title: "Welcome to\nSolana Social",
+    description: "Your all-in-one super app for\npayments, social and more",
+    color: "#8b5cf6",
   },
 ];
 
@@ -62,29 +43,11 @@ export default function WelcomeScreen() {
   const [currentPage, setCurrentPage] = useState(0);
   const pagerRef = useRef<PagerView>(null);
 
-  const logoScale = useSharedValue(0);
-  const logoRotate = useSharedValue(0);
-
-  useEffect(() => {
-    // Logo animation
-    logoScale.value = withSpring(1, { damping: 10, stiffness: 100 });
-    logoRotate.value = withSequence(
-      withTiming(10, { duration: 200 }),
-      withTiming(-10, { duration: 200 }),
-      withTiming(0, { duration: 200 }),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleNext = () => {
-    if (currentPage < ONBOARDING_PAGES.length - 1) {
-      pagerRef.current?.setPage(currentPage + 1);
-    } else {
-      router.push("/(auth)/signup");
-    }
+  const handleCreateAccount = () => {
+    router.push("/(auth)/signup-step1");
   };
 
-  const handleSkip = () => {
+  const handleSignIn = () => {
     router.push("/(auth)/login");
   };
 
@@ -92,14 +55,8 @@ export default function WelcomeScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      {/* Skip Button */}
-      {!isLastPage && (
-        <View className="absolute right-6 top-16 z-10">
-          <Pressable onPress={handleSkip}>
-            <Text className="text-base font-semibold text-gray-600">Skip</Text>
-          </Pressable>
-        </View>
-      )}
+      {/* Status Bar Space */}
+      <View className="h-12" />
 
       {/* Pager */}
       <PagerView
@@ -109,7 +66,7 @@ export default function WelcomeScreen() {
         onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
       >
         {ONBOARDING_PAGES.map((page, index) => (
-          <View key={page.id} className="flex-1 px-6">
+          <View key={page.id} className="flex-1">
             <OnboardingPage
               page={page}
               index={index}
@@ -122,46 +79,38 @@ export default function WelcomeScreen() {
       {/* Bottom Section */}
       <View className="px-6 pb-12">
         {/* Page Indicators */}
-        <View className="mb-6 flex-row items-center justify-center gap-2">
+        <View className="mb-8 flex-row items-center justify-center gap-2">
           {ONBOARDING_PAGES.map((_, index) => (
-            <Pressable
+            <View
               key={index}
-              onPress={() => pagerRef.current?.setPage(index)}
-            >
-              <View
-                className={`h-2 rounded-full transition-all ${
-                  currentPage === index ? "w-8 bg-blue-600" : "w-2 bg-gray-300"
-                }`}
-              />
-            </Pressable>
+              className={`h-1.5 rounded-full transition-all ${
+                currentPage === index
+                  ? "w-8 bg-purple-600"
+                  : "w-1.5 bg-gray-300"
+              }`}
+            />
           ))}
         </View>
 
         {/* Action Buttons */}
-        <View className="gap-3">
+        <View className="gap-4">
           <Button
-            onPress={handleNext}
-            className="bg-blue-600 active:bg-blue-700"
+            onPress={handleCreateAccount}
+            className="h-14 rounded-2xl bg-purple-600 active:bg-purple-700"
           >
-            <View className="flex-row items-center gap-2">
-              <Text className="text-base font-semibold text-white">
-                {isLastPage ? "Get Started" : "Next"}
-              </Text>
-              {!isLastPage && <ChevronRight size={20} color="#ffffff" />}
-            </View>
+            <Text className="text-base font-semibold text-white">
+              Create Account
+            </Text>
           </Button>
 
-          {isLastPage && (
-            <Button
-              onPress={() => router.push("/(auth)/login")}
-              variant="outline"
-              className="h-12"
-            >
-              <Text className="text-base font-semibold text-gray-900">
-                I already have an account
-              </Text>
-            </Button>
-          )}
+          <Pressable
+            onPress={handleSignIn}
+            className="items-center py-3 active:opacity-70"
+          >
+            <Text className="text-base font-semibold text-purple-600">
+              Sign In
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -209,74 +158,37 @@ function OnboardingPage({
     transform: [{ translateY: contentTranslateY.value }],
   }));
 
+  const IconComponent = page.icon;
+
   return (
-    <View className="flex-1 items-center justify-center">
+    <View className="flex-1 items-center justify-center px-8">
       {/* Icon */}
       <Animated.View
         style={[
           iconAnimatedStyle,
           {
-            marginBottom: 48,
-            height: 120,
-            width: 120,
-            borderRadius: 60,
-            backgroundColor: `${page.color}15`,
+            marginBottom: 64,
+            height: 100,
+            width: 100,
+            borderRadius: 50,
+            backgroundColor: "#f3e8ff",
             alignItems: "center",
             justifyContent: "center",
           },
         ]}
       >
-        {page.icon}
+        <IconComponent size={48} color={page.color} strokeWidth={2.5} />
       </Animated.View>
 
       {/* Content */}
       <Animated.View style={contentAnimatedStyle} className="items-center">
-        <Text className="text-center text-3xl font-bold text-gray-900">
+        <Text className="text-center text-3xl font-bold leading-tight text-gray-900">
           {page.title}
         </Text>
-        <Text className="mt-4 text-center text-base leading-6 text-gray-600">
+        <Text className="mt-4 text-center text-base leading-6 text-gray-500">
           {page.description}
         </Text>
-
-        {/* Feature Highlights for first page */}
-        {/* {index === 0 && (
-          <View className="mt-12 w-full gap-3">
-            <FeatureHighlight
-              icon={<Wallet size={20} color="#3b82f6" variant="Bold" />}
-              text="Secure custodial wallet"
-            />
-            <FeatureHighlight
-              icon={<MessageText size={20} color="#3b82f6" variant="Bold" />}
-              text="Social engagement platform"
-            />
-            <FeatureHighlight
-              icon={<Award size={20} color="#3b82f6" variant="Bold" />}
-              text="Earn crypto rewards"
-            />
-            <FeatureHighlight
-              icon={<Convert size={20} color="#3b82f6" variant="Bold" />}
-              text="DeFi trading features"
-            />
-          </View>
-        )} */}
       </Animated.View>
-    </View>
-  );
-}
-
-function FeatureHighlight({
-  icon,
-  text,
-}: {
-  icon: React.ReactNode;
-  text: string;
-}) {
-  return (
-    <View className="flex-row items-center gap-3">
-      <View className="h-10 w-10 items-center justify-center rounded-full bg-blue-50">
-        {icon}
-      </View>
-      <Text className="flex-1 text-sm font-medium text-gray-700">{text}</Text>
     </View>
   );
 }

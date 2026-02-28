@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
 import { Keypair } from "@solana/web3.js";
 import bs58 from "bs58";
 import crypto from "crypto";
@@ -32,36 +31,41 @@ async function seedUsers() {
   const users = [
     {
       username: "devarome",
+      fullName: "Dev Arome",
       email: "dev@arome.com",
-      password: "password123",
+      bio: "Admin and platform creator",
       role: "admin" as const,
       balances: { skr: 1000, sol: 10 },
     },
     {
       username: "alice_crypto",
+      fullName: "Alice Johnson",
       email: "alice@example.com",
-      password: "password123",
+      bio: "Crypto enthusiast and content creator",
       role: "creator" as const,
       balances: { skr: 500, sol: 5 },
     },
     {
       username: "bob_trader",
+      fullName: "Bob Smith",
       email: "bob@example.com",
-      password: "password123",
+      bio: "Day trader and DeFi explorer",
       role: "user" as const,
       balances: { skr: 250, sol: 2.5 },
     },
     {
       username: "charlie_defi",
+      fullName: "Charlie Brown",
       email: "charlie@example.com",
-      password: "password123",
+      bio: "DeFi maximalist",
       role: "user" as const,
       balances: { skr: 750, sol: 7.5 },
     },
     {
       username: "diana_nft",
+      fullName: "Diana Prince",
       email: "diana@example.com",
-      password: "password123",
+      bio: "NFT artist and collector",
       role: "creator" as const,
       balances: { skr: 600, sol: 6 },
     },
@@ -76,15 +80,14 @@ async function seedUsers() {
     const privateKey = bs58.encode(keypair.secretKey);
     const encryptedPrivateKey = encryptPrivateKey(privateKey);
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(userData.password, 10);
-
     const user = new User({
       username: userData.username,
+      fullName: userData.fullName,
       email: userData.email,
-      passwordHash,
+      bio: userData.bio,
       walletAddress,
       encryptedPrivateKey,
+      emailVerified: true,
       role: userData.role,
       balances: userData.balances,
       biometricEnabled: false,
@@ -245,7 +248,7 @@ async function seedPosts(users: any[]) {
   }
 }
 
-async function seedTrades(users: any[]) {
+async function seedTrades(users: unknown[]) {
   console.log("🌱 Seeding trades...");
 
   const trades = [
@@ -323,18 +326,16 @@ async function main() {
     await seedTrades(users);
 
     console.log("\n✨ Seed data created successfully!");
-    console.log("\n📝 Test Accounts:");
+    console.log("\n📝 Test Accounts (Passwordless - Use OTP):");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("Email: dev@arome.com");
-    console.log("Password: password123");
     console.log("Role: Admin");
+    console.log("Note: Use 'Send OTP' to login");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("Email: alice@example.com");
-    console.log("Password: password123");
     console.log("Role: Creator");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("Email: bob@example.com");
-    console.log("Password: password123");
     console.log("Role: User");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 

@@ -1,10 +1,11 @@
 import { Response, NextFunction } from "express";
-import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
 import User from "../models/User";
+import OTP from "../models/OTP";
 import { AuthRequest } from "../middleware/auth";
 import { AppError } from "../middleware/errorHandler";
 import walletService from "../services/walletService";
+import emailService from "../services/emailService";
 import { logger } from "../utils/logger";
 
 const generateToken = (userId: string, email: string, role: string): string => {
@@ -15,25 +16,146 @@ const generateToken = (userId: string, email: string, role: string): string => {
   );
 };
 
-export const signup = async (
+const generateOTP = (): string => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Step 1: Check if user details are available (username check)
+export const checkUsername = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { username, email, password } = req.body;
+    const { username } = req.body;
 
-    if (!password) {
-      throw new AppError("Password is required", 400, "PASSWORD_REQUIRED");
+    if (!username) {
+      throw new AppError("Username is required", 400, "USERNAME_REQUIRED");
     }
 
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      throw new AppError("Username already taken", 400, "USERNAME_TAKEN");
+    }
+
+    res.json({
+      message: "Username available",
+      available: true,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Step 2: Send OTP to email for signup
+export const signupSendOTP = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { fullName, username, email } = req.body;
+
+    if (!email || !username || !fullName) {
+      throw new AppError(
+        "Full name, username, and email are required",
+        400,
+        "MISSING_FIELDS",
+      );
+    }
+
+    // Check if user already exists
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      throw new AppError("User already exists", 400, "USER_EXISTS");
+      throw new AppError(
+        "User with this email or username already exists",
+        400,
+        "USER_EXISTS",
+      );
     }
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 12);
+    // Generate OTP
+    const code = generateOTP();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Delete any existing OTPs for this email
+    await OTP.deleteMany({ email });
+
+    // Create new OTP
+    await OTP.create({
+      email,
+      code,
+      expiresAt,
+    });
+
+    // Send OTP via email
+    await emailService.sendOTP(email, code);
+
+    logger.info(`OTP sent to ${email} for signup`);
+
+    res.json({
+      message: "OTP sent to your email",
+      email,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Step 3: Verify OTP and complete signup
+export const signupVerifyOTP = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { fullName, username, bio, email, code } = req.body;
+
+    if (!email || !code || !username || !fullName) {
+      throw new AppError(
+        "Email, code, username, and full name are required",
+        400,
+        "MISSING_FIELDS",
+      );
+    }
+
+    // Find OTP
+    const otpRecord = await OTP.findOne({ email, verified: false });
+
+    if (!otpRecord) {
+      throw new AppError("OTP not found or already used", 400, "OTP_NOT_FOUND");
+    }
+
+    // Check if expired
+    if (otpRecord.expiresAt < new Date()) {
+      await OTP.deleteOne({ _id: otpRecord._id });
+      throw new AppError("OTP has expired", 400, "OTP_EXPIRED");
+    }
+
+    // Check attempts
+    if (otpRecord.attempts >= 5) {
+      await OTP.deleteOne({ _id: otpRecord._id });
+      throw new AppError(
+        "Too many failed attempts. Please request a new OTP",
+        400,
+        "TOO_MANY_ATTEMPTS",
+      );
+    }
+
+    // Verify code
+    if (otpRecord.code !== code) {
+      otpRecord.attempts += 1;
+      await otpRecord.save();
+      throw new AppError(
+        `Invalid OTP. ${5 - otpRecord.attempts} attempts remaining`,
+        400,
+        "INVALID_OTP",
+      );
+    }
+
+    // Mark OTP as verified
+    otpRecord.verified = true;
+    await otpRecord.save();
 
     // Generate Solana wallet for the user (custodial)
     const wallet = walletService.generateWallet();
@@ -41,30 +163,47 @@ export const signup = async (
       wallet.privateKey,
     );
 
-    // Create user with auto-generated wallet
+    // Create user
     const user = await User.create({
+      fullName,
       username,
+      bio: bio || "",
       email,
-      passwordHash,
       walletAddress: wallet.publicKey,
       encryptedPrivateKey,
+      emailVerified: true,
       role: "user",
+      balances: {
+        skr: 100, // Welcome bonus
+        sol: 0.1, // Small SOL for gas fees
+      },
     });
 
+    // Generate JWT token
     const token = generateToken(user._id.toString(), user.email, user.role);
+
+    // Send welcome email
+    await emailService.sendWelcomeEmail(email, username);
+
+    // Delete the OTP
+    await OTP.deleteOne({ _id: otpRecord._id });
 
     logger.info(`User signed up: ${email} with wallet ${wallet.publicKey}`);
 
     res.status(201).json({
-      message: "User created successfully",
+      message: "Account created successfully",
       token,
       user: {
         id: user._id,
         username: user.username,
+        fullName: user.fullName,
         email: user.email,
+        bio: user.bio,
         role: user.role,
         walletAddress: user.walletAddress,
+        emailVerified: user.emailVerified,
         biometricEnabled: user.biometricEnabled,
+        balances: user.balances,
       },
     });
   } catch (error) {
@@ -72,24 +211,114 @@ export const signup = async (
   }
 };
 
-export const login = async (
+// Login: Send OTP to email
+export const loginSendOTP = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { email } = req.body;
 
+    if (!email) {
+      throw new AppError("Email is required", 400, "EMAIL_REQUIRED");
+    }
+
+    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
-      throw new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS");
+      throw new AppError(
+        "No account found with this email",
+        404,
+        "USER_NOT_FOUND",
+      );
     }
 
-    const isValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isValid) {
-      throw new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS");
+    // Generate OTP
+    const code = generateOTP();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Delete any existing OTPs for this email
+    await OTP.deleteMany({ email });
+
+    // Create new OTP
+    await OTP.create({
+      email,
+      code,
+      expiresAt,
+    });
+
+    // Send OTP via email
+    await emailService.sendOTP(email, code);
+
+    logger.info(`OTP sent to ${email} for login`);
+
+    res.json({
+      message: "OTP sent to your email",
+      email,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Login: Verify OTP
+export const loginVerifyOTP = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+      throw new AppError("Email and code are required", 400, "MISSING_FIELDS");
     }
 
+    // Find OTP
+    const otpRecord = await OTP.findOne({ email, verified: false });
+
+    if (!otpRecord) {
+      throw new AppError("OTP not found or already used", 400, "OTP_NOT_FOUND");
+    }
+
+    // Check if expired
+    if (otpRecord.expiresAt < new Date()) {
+      await OTP.deleteOne({ _id: otpRecord._id });
+      throw new AppError("OTP has expired", 400, "OTP_EXPIRED");
+    }
+
+    // Check attempts
+    if (otpRecord.attempts >= 5) {
+      await OTP.deleteOne({ _id: otpRecord._id });
+      throw new AppError(
+        "Too many failed attempts. Please request a new OTP",
+        400,
+        "TOO_MANY_ATTEMPTS",
+      );
+    }
+
+    // Verify code
+    if (otpRecord.code !== code) {
+      otpRecord.attempts += 1;
+      await otpRecord.save();
+      throw new AppError(
+        `Invalid OTP. ${5 - otpRecord.attempts} attempts remaining`,
+        400,
+        "INVALID_OTP",
+      );
+    }
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new AppError("User not found", 404, "USER_NOT_FOUND");
+    }
+
+    // Mark OTP as verified and delete
+    await OTP.deleteOne({ _id: otpRecord._id });
+
+    // Generate JWT token
     const token = generateToken(user._id.toString(), user.email, user.role);
 
     logger.info(`User logged in: ${email}`);
@@ -100,10 +329,14 @@ export const login = async (
       user: {
         id: user._id,
         username: user.username,
+        fullName: user.fullName,
         email: user.email,
+        bio: user.bio,
         role: user.role,
         walletAddress: user.walletAddress,
+        emailVerified: user.emailVerified,
         biometricEnabled: user.biometricEnabled,
+        balances: user.balances,
       },
     });
   } catch (error) {
@@ -156,10 +389,20 @@ export const exportPrivateKey = async (
       throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
     }
 
-    const { password } = req.body;
+    const { code } = req.body;
 
-    if (!password) {
-      throw new AppError("Password required", 400, "PASSWORD_REQUIRED");
+    if (!code) {
+      throw new AppError("OTP code required", 400, "CODE_REQUIRED");
+    }
+
+    // Verify OTP for security
+    const otpRecord = await OTP.findOne({
+      email: req.user.email,
+      verified: false,
+    });
+
+    if (!otpRecord || otpRecord.code !== code) {
+      throw new AppError("Invalid or expired OTP", 401, "INVALID_OTP");
     }
 
     // Get user with encrypted private key
@@ -171,14 +414,11 @@ export const exportPrivateKey = async (
       throw new AppError("User not found", 404, "USER_NOT_FOUND");
     }
 
-    // Verify password before exporting
-    const isValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isValid) {
-      throw new AppError("Invalid password", 401, "INVALID_PASSWORD");
-    }
-
     // Export private key as base58
     const privateKey = walletService.exportPrivateKey(user.encryptedPrivateKey);
+
+    // Delete the OTP
+    await OTP.deleteOne({ _id: otpRecord._id });
 
     logger.info(`Private key exported for user ${user.email}`);
 
