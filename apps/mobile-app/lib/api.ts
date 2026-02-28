@@ -55,6 +55,45 @@ api.interceptors.response.use(
 
 // Auth API endpoints
 export const authAPI = {
+  // OTP-based Signup (3 steps)
+  checkUsername: async (username: string) => {
+    const response = await api.post("/api/auth/check-username", { username });
+    return response.data;
+  },
+
+  signupSendOTP: async (data: {
+    fullName: string;
+    username: string;
+    bio?: string;
+    email: string;
+  }) => {
+    const response = await api.post("/api/auth/signup/send-otp", data);
+    return response.data;
+  },
+
+  signupVerifyOTP: async (data: {
+    fullName: string;
+    username: string;
+    bio?: string;
+    email: string;
+    code: string;
+  }) => {
+    const response = await api.post("/api/auth/signup/verify-otp", data);
+    return response.data;
+  },
+
+  // OTP-based Login (2 steps)
+  loginSendOTP: async (email: string) => {
+    const response = await api.post("/api/auth/login/send-otp", { email });
+    return response.data;
+  },
+
+  loginVerifyOTP: async (data: { email: string; code: string }) => {
+    const response = await api.post("/api/auth/login/verify-otp", data);
+    return response.data;
+  },
+
+  // Legacy endpoints (kept for backward compatibility)
   signup: async (data: {
     username: string;
     email: string;
